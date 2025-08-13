@@ -1,15 +1,19 @@
 use chrono::prelude::*;
-use std::{env, io, io::Write, fs::{OpenOptions}, path::Path};
-use crate::new_note;
+use std::{env, fs::{File, OpenOptions}, io::{self, Read, Write}, path::Path};
 
-fn read() -> String{
+fn read() -> (String, String){
     let args: Vec<String> = env::args().collect();
     
     dbg!(&args);
     
-    let option = &args[1];
+    let argument = &args[1];
+    let option = &args[2];
+
+    let argument = argument.trim().to_string();
     
-    option.trim().to_string()
+    let option = option.trim().to_string();
+    
+    (argument, option)
 }
 
 fn check_date () -> String {
@@ -19,7 +23,7 @@ fn check_date () -> String {
     date.format("%Y-%m-%d").to_string()
 }
 
-fn match_arguments(args: String, date: String) -> std::result::Result<u8, std::boxed::Box<(dyn std::error::Error + 'static)>> {
+fn match_arguments(args: String, option: String, date: String) -> std::result::Result<u8, std::boxed::Box<(dyn std::error::Error + 'static)>> {
     match args.to_lowercase().as_str() {
         
         "help" => {
@@ -46,6 +50,21 @@ fn match_arguments(args: String, date: String) -> std::result::Result<u8, std::b
             
             Ok(2)
         },
+
+        "read" => {
+            let mut buffer = String::new();
+            
+            let dir = "/home/callum/Documents/Notes/";
+            let path = Path::new(dir).join(format!("{option}"));
+            
+            let mut file = File::open(path).expect("The file you tried to open does not exist :(");            
+            
+            file.read_to_string(&mut buffer).expect("There were errors reading the file :(");
+
+            println!("{buffer}");
+
+            Ok(3)
+        },
         _ => {
             println!("'{args}' is not a valid argument.");
             Ok(0)
@@ -55,8 +74,8 @@ fn match_arguments(args: String, date: String) -> std::result::Result<u8, std::b
 
 pub fn arguments() -> u8 {
     let date = check_date();
-    let args = read();
-    let output:u8 = match_arguments(args, date).expect("There was an error matching arguments.");
+    let (args, option) = read();
+    let output:u8 = match_arguments(args, option, date).expect("There was an error matching arguments.");
     output
 }
 
