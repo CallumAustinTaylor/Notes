@@ -1,5 +1,5 @@
-use chrono::prelude::*;
-use std::{env, fs::{File, OpenOptions}, io::{self, Read, Write}, path::Path};
+use std::{env, fs::{File}, io::{Read}, path::Path};
+use crate::new_note;
 
 fn read() -> (String, String){
     let args: Vec<String> = env::args().collect();
@@ -16,37 +16,17 @@ fn read() -> (String, String){
     (argument, option)
 }
 
-fn check_date () -> String {
-    
-    let date: DateTime<Local> = Local::now();
-    
-    date.format("%Y-%m-%d").to_string()
-}
-
 fn match_arguments(args: String, option: String, date: String) -> std::result::Result<u8, std::boxed::Box<(dyn std::error::Error + 'static)>> {
     match args.to_lowercase().as_str() {
         
         "help" => {
-            println!("This is the help page.");
+            println!("This is the help page.\nnote [argument] [option]\nhelp: Prints out a list of helpful information.\ndailynote: Writes a note into the ~/Documents/Notes/ directory named the day month and year.\nIf there isn't a note for that day it will create a new note.\nread: Read simply reads a note! It requires an option which is the name of the note.\nFor example, 'notes read 2025-08-13.txt' is a valid way of using read.");
             Ok(1)
         },
         
         "dailynote" => {
-            println!("What would you like to write?");
-            let mut buf = String::new();
-            io::stdin().read_line(&mut buf).expect("There was an issue reading your input for dailynote.");
-            let dir = "/home/callum/Documents/Notes/";
-            let path = Path::new(dir).join(format!("{date}.txt"));
-            let mut file = OpenOptions::new()
-                .create(true)   // create if it doesn't exist
-                .write(true)    // open for writing
-                .append(true)   // or .truncate(true) for overwriting
-                .open(path)?;
-            if !buf.ends_with('\n') {
-                buf.push('\n');
-            }
-            
-            file.write_all(buf.as_bytes())?;
+            let date = new_note::check_date();
+            new_note::daily_note(date);
             
             Ok(2)
         },
@@ -73,7 +53,7 @@ fn match_arguments(args: String, option: String, date: String) -> std::result::R
 }
 
 pub fn arguments() -> u8 {
-    let date = check_date();
+    let date = new_note::check_date();
     let (args, option) = read();
     let output:u8 = match_arguments(args, option, date).expect("There was an error matching arguments.");
     output
