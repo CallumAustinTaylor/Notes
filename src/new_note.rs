@@ -29,7 +29,7 @@ pub fn make_note() -> Result<(), Box<dyn std::error::Error>> {
 
 // Everything for arguments go below here:
 
-pub fn daily_note(date: String) {
+pub fn daily_note(date: String) -> Result<u8, Box<dyn std::error::Error>> {
     println!("What would you like to write?");
     
     let mut buf = String::new();
@@ -49,4 +49,6 @@ pub fn daily_note(date: String) {
     }
             
     file.write_all(buf.as_bytes())?;
+
+    Ok(1)
 }
